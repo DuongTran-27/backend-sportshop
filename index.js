@@ -1,6 +1,7 @@
 const express = require ('express');
 const app = express ();
 const PORT = 3000;
+
 app.listen (PORT, () => {
     console.log (`Server is running on port ${PORT}`);
 });
@@ -12,3 +13,4 @@ app.use(bodyParser.urlencoded ({extended: true, limit: '10mb'}));
 app.get ('/', (req, res) => {
     res.json ({message:'Hello from server !' });
 });
+
