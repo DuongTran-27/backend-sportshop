@@ -1,10 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const JwtUtil = require('../utils/JwtUtil');
+const CryptoUtil = require('../utils/CryptoUtil');
+const mongoose = require('mongoose');
+const EmailUtil = require('../utils/EmailUtil');
+const Models = require('../models/Models');
+
+
+
 
 //daos
 const CategoryDAO = require('../models/CategoryDAO');
 const ProductDAO = require('../models/ProductDAO');
 const OrderDAO = require('../models/OrderDAO');
+const UserDAO = require('../models/UserDAO');
 
 // =============================================
 // CATEGORY ROUTES
@@ -154,5 +163,149 @@ router.delete('/orders/:id', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+// customer: activate account
+router.post('/active', async function (req, res) {
+        try {
+                const _id = req.body.id;
+                const token = req.body.token;
+                if (!_id || !token) return res.status(400).json({ success: false, message: 'Missing id or token' });
 
+                const result = await UserDAO.active(_id, token);
+                if (result) res.json({ success: true, message: 'Account activated' });
+                else res.status(400).json({ success: false, message: 'Invalid id or token' });
+        } catch (err) {
+                console.error('POST /api/customer/active error:', err);
+                res.status(500).json({ error: 'Server error' });
+        }
+});
+// customer: signup
+router.post('/signup', async function (req, res) {
+    try {
+        console.log('POST /api/customer/signup body:', req.body);
+
+        // normalize inputs
+        const full_name = req.body.full_name;
+        const password = req.body.password;
+        const phone = req.body.phone;
+        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
+
+    const dbCust = await UserDAO.readByEmail(email);
+
+        if (dbCust) {
+            return res.json({ success: false, message: 'Exists email' });
+        }
+
+        const now = new Date().getTime(); // milliseconds
+        const token = CryptoUtil.md5(now.toString());
+
+        const newUser = new Models.User({
+                _id: new mongoose.Types.ObjectId(),
+                full_name: full_name,
+                password: password,
+                phone: phone,
+                address: {},
+                email: email,
+                role: "customer",
+                wishlist: [],
+                cdate: Date.now(),
+                active: false,
+                token: token
+            });
+
+
+        const result = await UserDAO.create(newUser);
+
+        if (result) {
+            return res.json({ 
+                success: true, 
+                message: 'Create success',
+                data: result
+            });
+            const send = await EmailUtil.send(email, result._id, token);
+
+            if (send) {
+                res.json({ success: true, message: 'Please check email' });
+            } else {
+                res.json({ success: false, message: 'Email failure' });
+            }
+        } else {
+            res.json({ success: false, message: 'Create failure' });
+        }
+    } catch (err) {
+        console.error('POST /api/customer/signup error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+// customer
+router.post('/login', async function (req, res) {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (email && password) {
+    const customer = await UserDAO.readByEmailAndPassword(email, password);
+
+        if (customer) {
+            if (customer.active === 1) {
+                // generate token including username and password (keeps same shape as admin token)
+                const token = JwtUtil.genToken(email, password);
+
+                res.json({
+                    success: true,
+                    message: 'Authentication successful',
+                    token: token,
+                    customer: customer
+                });
+            } else {
+                res.json({ success: false, message: 'Account is deactive' });
+            }
+        } else {
+      res.json({ success: false, message: 'Incorrect email or password' });
+    }
+  } else {
+    res.json({ success: false, message: 'Please input email and password' });
+  }
+});
+
+router.get('/token', JwtUtil.checkToken, function (req, res) {
+  const token = req.headers['x-access-token'] || req.headers['authorization'];
+
+  res.json({
+    success: true,
+    message: 'Token is valid',
+    token: token
+  });
+});
+
+router.get('/user/:id', async function (req, res) {
+    const user = await UserDAO.readById(req.params.id);
+    return res.json({ 
+        success: true, 
+        data: user
+    });
+});
+router.put('/user/:id', async function (req, res) {
+      const _id = req.params.id;
+      try{
+         const full_name = req.body && req.body.full_name ? req.body.full_name.trim() : '';
+            const password = req.body && req.body.password ? req.body.password.trim() : '';
+            const phone = req.body && req.body.phone ? req.body.phone.trim() : '';
+            const email = req.body && req.body.email ? req.body.email.trim() : '';
+            const role = req.body && req.body.role ? req.body.role.trim() : '';
+
+        if (!full_name || !password || !phone || !email || !role) {
+            return res.json({ success: false, message: 'Missing required fields' });
+        }
+        const prod = {_id, full_name, password, phone, email, role};
+        const result = await UserDAO.update(_id, prod);
+        if (!result) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        else {
+            return res.json({ success: true, data: result });
+        }
+      } catch (err) {
+    console.error('Error updating product:', err);
+    return res.status(500).json({ success: false, message: 'Server error updating product' });
+  }
+});
 module.exports = router;

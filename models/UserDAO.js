@@ -21,6 +21,22 @@ const UserDAO ={
     async delete(id) {
         const result = await Models.User.findByIdAndDelete(id);
         return result;
-    }
+    },
+    async readByEmail(email) {
+        const user = await Models.User.findOne({ email: email }).exec();
+        return user;    
+    },
+    async active(_id, token) {
+    const query = { _id: _id, token: token };
+    const newvalues = { active: true };
+
+    const result = await Models.User.findOneAndUpdate(
+      query,
+      newvalues,
+      { new: true }
+    );
+
+    return result;
+  },
 }
 module.exports = UserDAO;
