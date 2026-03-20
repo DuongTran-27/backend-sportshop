@@ -50,7 +50,7 @@ const ProductSchema = new mongoose.Schema(
     image: String,
     cdate: Number,
     description: String,
-    category: CategorySchema,
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
     details: Object,
   },
   { versionKey: false }
@@ -61,11 +61,10 @@ const CartsSchema = new mongoose.Schema(
     _id: mongoose.Schema.Types.ObjectId,
     user_id: String,
     items: [Object],
-    updateat: Number,
+    updatedAt: Number,
   },
   {
-    versionKey: false,
-    _id: false
+    versionKey: false
   }
 );
 
@@ -85,16 +84,21 @@ const OrderSchema = new mongoose.Schema(
 );
 
 // ===== MODELS =====
-const Admin = mongoose.model('Admin', AdminSchema);
+// Register Admin model and explicitly set collection name to 'admin'
+// This prevents Mongoose's default pluralization which created 'admins'.
+const Admin = mongoose.model('Admin', AdminSchema, 'admin');
 const Category = mongoose.model('Category', CategorySchema);
 const User = mongoose.model('User', UserSchema);
 const Product = mongoose.model('Product', ProductSchema);
 const Order = mongoose.model('Order', OrderSchema);
+const Cart = mongoose.model('Cart', CartsSchema);
+
 
 module.exports = {
   Admin,
   Category,
   User,
   Product,
-  Order
+  Order,
+  Cart
 };
