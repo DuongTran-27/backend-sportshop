@@ -1,6 +1,7 @@
 // CLI: npm install mongoose --save
 const mongoose = require('mongoose');
 
+
 // ===== SCHEMAS =====
 const AdminSchema = new mongoose.Schema(
   {
@@ -30,7 +31,7 @@ const UserSchema = new mongoose.Schema(
     full_name: String,
     password: String,
     phone: String,
-    adress: String,
+    address: Object,
     email: String,
     role: String,
     wishlist: [String],
@@ -86,14 +87,14 @@ const OrderSchema = new mongoose.Schema(
 // ===== MODELS =====
 const Admin = mongoose.model('Admin', AdminSchema);
 const Category = mongoose.model('Category', CategorySchema);
-const Customer = mongoose.model('Customer', CustomerSchema);
+const User = mongoose.model('User', UserSchema);
 const Product = mongoose.model('Product', ProductSchema);
 const Order = mongoose.model('Order', OrderSchema);
 
 module.exports = {
   Admin,
   Category,
-  Customer,
+  User,
   Product,
   Order
 };

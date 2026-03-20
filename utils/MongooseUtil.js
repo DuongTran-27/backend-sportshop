@@ -12,6 +12,7 @@ const uri =
   '/' +
   MyConstants.DB_DATABASE;
 
+  console.log('Connecting to MongoDB with URI:', uri);
 mongoose
   .connect(uri)
   .then(() => {
