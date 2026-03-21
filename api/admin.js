@@ -175,8 +175,8 @@ router.put('/products/:id', async (req, res) => {
 		if (!updated) return res.status(404).json({ error: 'Product not found' });
 		res.json(updated);
 	} catch (err) {
-		console.error('PUT /products/:id error', err);
-		res.status(500).json({ error: 'Internal server error' });
+		console.error('PUT /products/:id error:', err.message, err.name);
+		res.status(500).json({ error: err.message || 'Internal server error' });
 	}
 });
 
