@@ -3,6 +3,11 @@ const Models = require('./Models');
 const mongoose = require('mongoose');
 
 const ProductDAO = {
+    async search(keyword) {
+        const query = { name: { $regex: keyword, $options: 'i' } };
+        const products = await Models.Product.find(query).exec();
+        return products;
+    },
     async selectAll() {
         const query = {};
         const products = await Models.Product.find(query).exec();

@@ -26,6 +26,10 @@ const UserDAO ={
         const user = await Models.User.findOne({ email: email }).exec();
         return user;    
     },
+    async readByEmailAndPassword(email, password) {
+        const user = await Models.User.findOne({ email: email, password: password }).exec();
+        return user;
+    },
     async active(_id, token) {
     const query = { _id: _id, token: token };
     const newvalues = { active: true };
