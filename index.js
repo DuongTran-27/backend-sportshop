@@ -7,6 +7,10 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
+const cors = require('cors');
+
+// cho phép tất cả (dev thôi)
+app.use(cors());
 
 app.use('/api/admin', require('./api/admin.js'));
 app.use('/api/customer', require('./api/customer.js'));
@@ -18,4 +22,7 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+
+
 
