@@ -203,7 +203,12 @@ router.post('/signup', async function (req, res) {
                 full_name: full_name,
                 password: password,
                 phone: phone,
-                address: {},
+                address: {
+                    street: '',
+                    ward: '',
+                    district: '',
+                    city: '',
+                },
                 email: email,
                 role: "customer",
                 wishlist: [],
@@ -286,16 +291,58 @@ router.get('/user/:id', async function (req, res) {
 router.put('/user/:id', async function (req, res) {
       const _id = req.params.id;
       try{
-         const full_name = req.body && req.body.full_name ? req.body.full_name.trim() : '';
-            const password = req.body && req.body.password ? req.body.password.trim() : '';
-            const phone = req.body && req.body.phone ? req.body.phone.trim() : '';
-            const email = req.body && req.body.email ? req.body.email.trim() : '';
-            const role = req.body && req.body.role ? req.body.role.trim() : '';
+        const full_name = req.body && req.body.full_name ? req.body.full_name.trim() : '';
+        const password = req.body && req.body.password ? req.body.password.trim() : '';
+        const phone = req.body && req.body.phone ? req.body.phone.trim() : '';
+        const email = req.body && req.body.email ? req.body.email.trim() : '';
+        const address = req.body && req.body.address ? req.body.address : {};
+        const role = 'customer';
 
-        if (!full_name || !password || !phone || !email || !role) {
-            return res.json({ success: false, message: 'Missing required fields' });
+        if(!full_name) {
+            return res.json({ 
+                success: false, 
+                message: 'full_name is required',
+            });
         }
-        const prod = {_id, full_name, password, phone, email, role};
+        if(!phone) {
+            return res.json({ 
+                success: false, 
+                message: 'phone is required',
+            });
+        }
+        if(!email) {
+            return res.json({ 
+                success: false,
+                message: 'email is required',
+            });
+        }
+        if(!address) {
+            return res.json({ 
+                success: false,
+                message: 'address is required',
+            });
+        }
+
+        if (!(full_name && phone && email && address)) {
+            return res.json({ 
+                success: false, 
+                message: 'Missing required fields', 
+                data: {
+                    full_name,
+                    password,
+                    phone,
+                    email,
+                    address
+                }
+            });
+        }
+        let prod = {};
+        if (password !== '') {
+            prod = {_id, full_name, password, phone, email, address, role};
+        } else {
+            prod = {_id, full_name, phone, email, address, role};
+        }
+
         const result = await UserDAO.update(_id, prod);
         if (!result) {
             return res.status(404).json({ success: false, message: 'User not found' });

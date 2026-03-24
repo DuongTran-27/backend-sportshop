@@ -2,6 +2,8 @@ require('../utils/MongooseUtil');
 const Models = require('./Models');
 const mongoose = require('mongoose');
 const {selectById} = require("./CategoryDAO");
+const JwtUtil = require('../utils/JwtUtil');
+
 
 
 const OrderDAO = {
@@ -19,7 +21,7 @@ const OrderDAO = {
     const newOrder = new Models.Order({
       _id: new mongoose.Types.ObjectId(),
       userId: order.userId,
-      orderNumber: order.orderNumber,
+      orderNumber: JwtUtil.genToken(),
       cdate: order.cdate || Date.now(),
       totalAmount: order.totalAmount,
       status: order.status,
