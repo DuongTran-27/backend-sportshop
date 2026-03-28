@@ -30,10 +30,16 @@ router.get('/categories', async (req, res) => {
     }
 });
 
-// Xem chi tiết 1 danh mục theo ID
+// Xem chi tiết 1 danh mục theo ID hoặc Slug
 router.get('/categories/:id', async (req, res) => {
     try {
-        const category = await CategoryDAO.selectById(req.params.id);
+        const idOrSlug = req.params.id;
+        let category;
+        if (mongoose.Types.ObjectId.isValid(idOrSlug) && (String(new mongoose.Types.ObjectId(idOrSlug)) === idOrSlug)) {
+            category = await CategoryDAO.selectById(idOrSlug);
+        } else {
+            category = await CategoryDAO.selectBySlug(idOrSlug);
+        }
         if (!category) return res.status(404).json({ error: 'Category not found' });
         res.json(category);
     } catch (err) {
@@ -85,7 +91,16 @@ router.get('/products/search/:keyword', async (req, res) => {
 router.get('/products/categories/:cid', async (req, res) => {
     try {
         const _cid = req.params.cid;
-        const products = await ProductDAO.selectByCategory(_cid);
+        let categoryId = _cid;
+        if (!mongoose.Types.ObjectId.isValid(_cid) || (String(new mongoose.Types.ObjectId(_cid)) !== _cid)) {
+            const category = await CategoryDAO.selectBySlug(_cid);
+            if (category) {
+                categoryId = category._id;
+            } else {
+                return res.json([]);
+            }
+        }
+        const products = await ProductDAO.selectByCategory(categoryId);
         res.json(products);
     } catch (err) {
         console.error('GET /api/customer/products/categories/:cid error', err);
@@ -93,11 +108,16 @@ router.get('/products/categories/:cid', async (req, res) => {
     }
 });
 
-// Xem chi tiết 1 sản phẩm theo ID
+// Xem chi tiết 1 sản phẩm theo ID hoặc Slug
 router.get('/products/:id', async (req, res) => {
     try {
         const _id = req.params.id;
-        const product = await ProductDAO.selectById(_id);
+        let product;
+        if (mongoose.Types.ObjectId.isValid(_id) && (String(new mongoose.Types.ObjectId(_id)) === _id)) {
+            product = await ProductDAO.selectById(_id);
+        } else {
+            product = await ProductDAO.selectBySlug(_id);
+        }
         if (!product) return res.status(404).json({ error: 'Product not found' });
         res.json(product);
     } catch (err) {
@@ -221,15 +241,14 @@ router.post('/signup', async function (req, res) {
         const result = await UserDAO.create(newUser);
 
         if (result) {
-            return res.json({ 
-                success: true, 
-                message: 'Create success',
-                data: result
-            });
             const send = await EmailUtil.send(email, result._id, token);
-
+            
             if (send) {
-                res.json({ success: true, message: 'Please check email' });
+                return res.json({ 
+                    success: true, 
+                    message: 'Create success, please check email',
+                    data: result
+                });
             } else {
                 res.json({ success: false, message: 'Email failure' });
             }

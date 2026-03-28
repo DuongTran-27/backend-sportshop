@@ -15,6 +15,11 @@ const CategoryDAO = {
         .Category.findOne(query).exec();
         return category;
     },
+    async selectBySlug(slug) {
+        const query = { slug: slug };
+        const category = await Models.Category.findOne(query).exec();
+        return category;
+    },
 
     async insert(category) {
         const newCategory = new Models.Category({

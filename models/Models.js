@@ -46,6 +46,7 @@ const ProductSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
     name: String,
+    slug: String,
     price: Number,
     image: String,
     cdate: Number,

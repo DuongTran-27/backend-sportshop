@@ -1,4 +1,5 @@
 require('../utils/MongooseUtil');
+const Utils = require('../utils/Utils');
 const Models = require('./Models');
 const mongoose = require('mongoose');
 
@@ -19,10 +20,16 @@ const ProductDAO = {
         .Product.findOne(query).exec();
         return product;
     },
+    async selectBySlug(slug) {
+        const query = { slug: slug };
+        const product = await Models.Product.findOne(query).exec();
+        return product;
+    },
     async insert(product) {
         const newProduct = new Models.Product({
             _id: new mongoose.Types.ObjectId(),
             name: product.name,
+            slug: product.slug ? product.slug : Utils.StringToSlug(product.name),
             price: product.price,
             image: product.image,
             cdate: product.cdate,
@@ -37,6 +44,7 @@ const ProductDAO = {
         const query = { _id: id };
         const update = {
             name: product.name,
+            slug: product.slug,
             price: product.price,
             image: product.image,
             cdate: product.cdate,
