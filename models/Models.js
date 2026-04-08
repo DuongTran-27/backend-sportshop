@@ -52,6 +52,7 @@ const ProductSchema = new mongoose.Schema(
     cdate: Number,
     description: String,
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+    sizeType: String, // 'shoe' | 'clothing' | 'none'
     details: Object,
   },
   { versionKey: false }

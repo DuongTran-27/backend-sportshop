@@ -35,6 +35,7 @@ const ProductDAO = {
             cdate: product.cdate,
             description: product.description,
             category: product.category,
+            sizeType: product.sizeType || 'none',
             details: product.details
         });
         await newProduct.save();
@@ -50,6 +51,7 @@ const ProductDAO = {
             cdate: product.cdate,
             description: product.description,
             category: product.category,
+            sizeType: product.sizeType || 'none',
             details: product.details
         };
         const options = { new: true };

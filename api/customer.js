@@ -163,6 +163,24 @@ router.post('/orders', async (req, res) => {
             return res.status(400).json({ error: 'userId và items là bắt buộc' });
         }
         const newOrder = await OrderDAO.insert(order);
+
+        // Gửi email xác nhận đơn hàng (async, không block response)
+        try {
+            const user = await UserDAO.readById(order.userId);
+            if (user && user.email) {
+                const EmailUtil = require('../utils/EmailUtil');
+                EmailUtil.sendOrderConfirmation(user.email, newOrder)
+                    .then(sent => {
+                        if (sent) console.log('Order confirmation email sent to', user.email);
+                        else console.warn('Failed to send order confirmation email');
+                    })
+                    .catch(err => console.error('Email send error:', err));
+            }
+        } catch (emailErr) {
+            console.error('Error sending order confirmation email:', emailErr);
+            // Không throw — đơn hàng vẫn được tạo thành công
+        }
+
         res.status(201).json(newOrder);
     } catch (err) {
         console.error('POST /api/customer/orders error', err);
