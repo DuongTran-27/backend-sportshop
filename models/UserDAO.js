@@ -32,7 +32,7 @@ const UserDAO ={
     },
     async active(_id, token) {
     const query = { _id: _id, token: token };
-    const newvalues = { active: true };
+    const newvalues = { active: 1 };
 
     const result = await Models.User.findOneAndUpdate(
       query,

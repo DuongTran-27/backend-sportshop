@@ -223,7 +223,7 @@ router.post('/signup', async function (req, res) {
 
         // normalize inputs
         const full_name = req.body.full_name;
-        const password = req.body.password;
+        const password = req.body.password ? CryptoUtil.md5(req.body.password) : '';
         const phone = req.body.phone;
         const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
 
@@ -281,13 +281,13 @@ router.post('/signup', async function (req, res) {
 // customer
 router.post('/login', async function (req, res) {
   const email = req.body.email;
-  const password = req.body.password;
+  const password = req.body.password ? CryptoUtil.md5(req.body.password) : '';
 
   if (email && password) {
     const customer = await UserDAO.readByEmailAndPassword(email, password);
 
         if (customer) {
-            if (customer.active === 1) {
+            if (customer.active === 1 || customer.active === true) {
                 // generate token including username and password (keeps same shape as admin token)
                 const token = JwtUtil.genToken(email, password);
 
@@ -329,7 +329,8 @@ router.put('/user/:id', async function (req, res) {
       const _id = req.params.id;
       try{
         const full_name = req.body && req.body.full_name ? req.body.full_name.trim() : '';
-        const password = req.body && req.body.password ? req.body.password.trim() : '';
+        const rawPassword = req.body && req.body.password ? req.body.password.trim() : '';
+        const password = rawPassword ? CryptoUtil.md5(rawPassword) : '';
         const phone = req.body && req.body.phone ? req.body.phone.trim() : '';
         const email = req.body && req.body.email ? req.body.email.trim() : '';
         const address = req.body && req.body.address ? req.body.address : {};
